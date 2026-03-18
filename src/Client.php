@@ -19,7 +19,13 @@ class Client
     public $host;
     public $requester;
     public $paging;
+    /**
+     * @var array{timeout: 10}
+     */
     public $options;
+    /**
+     * @var \DuoAPI\USleepService
+     */
     public $sleep_service;
 
     public function __construct(
@@ -32,7 +38,7 @@ class Client
         assert(is_string($ikey));
         assert(is_string($skey));
         assert(is_string($host));
-        assert(is_null($requester) || is_subclass_of($requester, "DuoAPI\\Requester"));
+        assert(is_null($requester) || is_subclass_of($requester, \DuoAPI\Requester::class));
         assert(is_bool($paging));
 
         $this->ikey = $ikey;
@@ -66,13 +72,13 @@ class Client
      *             ->setRequesterOption("option2", "value2")
      *             ->setRequesterOption("option3", "value3");
      */
-    public function setRequesterOption($option, $value)
+    public function setRequesterOption($option, $value): static
     {
         $this->options[$option] = $value;
         return $this;
     }
 
-    private function signParameters($method, $host, $path, $params, $skey, $ikey, $now, $body, $additional_headers)
+    private function signParameters(string $method, $host, string $path, array $params, $skey, $ikey, string $now, string|bool $body, array $additional_headers): string
     {
         assert(is_string($method));
         assert(is_string($host));
@@ -91,7 +97,7 @@ class Client
         return sprintf("Basic %s", $b64auth);
     }
 
-    private function sign($msg, $key)
+    private function sign($msg, string $key): string
     {
         assert(is_string($msg));
         assert(is_string($key));
@@ -102,7 +108,7 @@ class Client
         return hash_hmac("sha512", $msg, $key);
     }
 
-    private function canonicalize($method, $host, $path, $params, $now, $body = null, $additional_headers = [])
+    private function canonicalize(string $method, string $host, string $path, array $params, string $now, $body = null, $additional_headers = []): string
     {
         assert(is_string($method));
         assert(is_string($host));
@@ -114,7 +120,7 @@ class Client
 
         $args = self::urlEncodeParameters($params);
         
-        $canon = array(
+        $canon = [
             $now,
             strtoupper($method),
             strtolower($host),
@@ -122,14 +128,12 @@ class Client
             $args,
             hash('sha512', mb_convert_encoding($body ?? '', 'UTF-8', 'ISO-8859-1')),
             self::canonXDuoHeaders($additional_headers),
-        );
+        ];
 
-        $canon = implode("\n", $canon);
-
-        return $canon;
+        return implode("\n", $canon);
     }
 
-    private function canonXDuoHeaders($additional_headers = [])
+    private function canonXDuoHeaders(array $additional_headers = []): string
     {
         assert(is_array($additional_headers));
         
@@ -149,38 +153,35 @@ class Client
         return hash('sha512', mb_convert_encoding($canon ?? '', 'UTF-8', 'ISO-8859-1'));
     }
 
-    private function validateAdditionalHeader($name, $value, $addedHeaders)
+    private function validateAdditionalHeader(int|string $name, $value, array $addedHeaders): void
     {
-        if ($name === null || $value === null)
-        {
+        if ($value === null) {
             throw new \InvalidArgumentException("Not allowed 'null' as a header name or value");
-        } elseif (str_contains($name,"\x00"))
-        {
+        }
+        if (str_contains($name,"\x00")) {
             throw new \InvalidArgumentException("Not allowed 'Null' character in header name");
-        } elseif (str_contains($value,"\x00"))
-        {
+        }
+        if (str_contains($value,"\x00")) {
             throw new \InvalidArgumentException("Not allowed 'Null' character in header value");
-        } elseif (!str_starts_with(strtolower($name),"x-duo-"))
-        {
+        }
+        if (!str_starts_with(strtolower($name),"x-duo-")) {
             throw new \InvalidArgumentException("Additional headers must start with 'X-Duo-'");
-        } elseif (in_array(strtolower($name), $addedHeaders, true))
-        {
+        }
+        if (in_array(strtolower($name), $addedHeaders, true)) {
             throw new \InvalidArgumentException("Duplicate header passed, header=$name");
         }
     }
 
-    private function urlEncodeParameters($params)
+    private function urlEncodeParameters(array $params): string
     {
         assert(is_array($params));
 
         ksort($params);
-        $args = array_map(function ($key, $value) {
-            return sprintf("%s=%s", rawurlencode($key), rawurlencode($value));
-        }, array_keys($params), array_values($params));
+        $args = array_map(fn($key, int $value) => sprintf("%s=%s", rawurlencode($key), rawurlencode($value)), array_keys($params), array_values($params));
         return implode("&", $args);
     }
 
-    private function makeRequest($method, $uri, $body, $headers)
+    private function makeRequest(string $method, string $uri, string|bool $body, array $headers)
     {
         assert(is_string($method));
         assert(is_string($uri));
@@ -198,7 +199,7 @@ class Client
                 return $result;
             }
 
-            $this->sleep_service->sleep($backoff_seconds + (rand(0, 1000) / 1000.0));
+            $this->sleep_service->sleep($backoff_seconds + (random_int(0, 1000) / 1000.0));
             $backoff_seconds *= BACKOFF_FACTOR;
         }
     }
@@ -278,8 +279,7 @@ class Client
                 return $paged_result;
             }
 
-            $offset = isset($paged_result["response"]["metadata"]["next_offset"]) ?
-                $paged_result["response"]["metadata"]["next_offset"] : false;
+            $offset = $paged_result["response"]["metadata"]["next_offset"] ?? false;
 
             if (isset($paged_result["response"]["metadata"])) {
                 unset($paged_result["response"]["metadata"]);

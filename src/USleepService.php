@@ -3,7 +3,7 @@ namespace DuoAPI;
 
 class USleepService implements SleepService
 {
-    public function sleep($seconds)
+    public function sleep($seconds): void
     {
         usleep($seconds * 1000000);
     }

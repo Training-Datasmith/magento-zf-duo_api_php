@@ -12,8 +12,8 @@ class Admin extends Client
      * Values a user/group's status can be set to. Note that this is what
      * they can be SET to, there are additional values that can be retrieved.
      */
-    private static $SET_STATUS = ["active", "bypass", "disabled"];
-    private function is_status($status)
+    private static array $SET_STATUS = ["active", "bypass", "disabled"];
+    private function is_status($status): bool
     {
         return is_string($status) && in_array($status, self::$SET_STATUS, true);
     }

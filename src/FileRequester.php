@@ -37,11 +37,7 @@ class FileRequester implements Requester
         ];
     }
 
-    public function __destruct()
-    {
-    }
-
-    protected static function parse_http_response_header($headers)
+    protected static function parse_http_response_header($headers): int|false
     {
         /*
          * It's possible that there will be multiple HTTP status codes in
@@ -53,7 +49,7 @@ class FileRequester implements Requester
 
         $status_code_headers = preg_grep($status_code_regex, $headers);
         $status_codes = array_map(
-            function ($header) use ($status_code_regex) {
+            function ($header) use ($status_code_regex): int {
                 $status_code = preg_match($status_code_regex, $header, $matches);
                 return (int) $matches['http_status_code'];
             },
@@ -63,7 +59,7 @@ class FileRequester implements Requester
         return end($status_codes);
     }
 
-    public function options($options)
+    public function options($options): void
     {
         assert(is_array($options));
 
@@ -83,16 +79,14 @@ class FileRequester implements Requester
         }
     }
 
-    public function execute($url, $method, $headers, $body = null)
+    public function execute($url, $method, $headers, $body = null): array
     {
         assert(is_string($url));
         assert(is_string($method));
         assert(is_array($headers));
         assert(is_string($body) || is_null($body));
 
-        $headers = array_map(function ($key, $value) {
-            return sprintf("%s: %s", $key, $value);
-        }, array_keys($headers), array_values($headers));
+        $headers = array_map(fn($key, int $value) => sprintf("%s: %s", $key, $value), array_keys($headers), array_values($headers));
 
         $this->http_options['http']['method'] = $method;
         $this->http_options['http']['header'] = $headers;
