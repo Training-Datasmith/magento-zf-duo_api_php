@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace SSL;
 
 /*
@@ -9,27 +12,27 @@ namespace SSL;
 class SSLTest extends \PHPUnit\Framework\TestCase
 {
     // https://curl.haxx.se/libcurl/c/libcurl-errors.html
-    const CURLE_PEER_FAILED_VERIFICATION_OLD = 51;
-    const CURLE_PEER_FAILED_VERIFICATION = 60;
+    public const CURLE_PEER_FAILED_VERIFICATION_OLD = 51;
+    public const CURLE_PEER_FAILED_VERIFICATION = 60;
 
     public $good_chain;
     public $bad_chain;
 
-    public function setUp() : void
+    public function setUp(): void
     {
-        $this->good_chain = dirname(__FILE__) . "/" . "ca-chain-self.cert.pem";
-        $this->bad_chain = dirname(__FILE__) . "/" . "ca-chain-mozilla.cert.pem";
+        $this->good_chain = dirname(__FILE__) . '/' . 'ca-chain-self.cert.pem';
+        $this->bad_chain = dirname(__FILE__) . '/' . 'ca-chain-mozilla.cert.pem';
     }
 
-    public static function setUpBeforeClass() : void
+    public static function setUpBeforeClass(): void
     {
         $silence = '>/dev/null 2>&1 & echo $!';
 
         $commands = [
-            sprintf("php -S %s", PHP_SERVER),
-            sprintf("stunnel3 -d %s -r %s -p %s -P '' -f", GOOD_STUNNEL_SERVER, PHP_SERVER, dirname(__FILE__) . "/" . "good.pem"),
-            sprintf("stunnel3 -d %s -r %s -p %s -P '' -f", SELF_SIGNED_STUNNEL_SERVER, PHP_SERVER, dirname(__FILE__) . "/" . "self.pem"),
-            sprintf("stunnel3 -d %s -r %s -p %s -P '' -f", BAD_HOSTNAME_STUNNEL_SERVER, PHP_SERVER, dirname(__FILE__) . "/" . "badhost.pem"),
+            sprintf('php -S %s', PHP_SERVER),
+            sprintf("stunnel3 -d %s -r %s -p %s -P '' -f", GOOD_STUNNEL_SERVER, PHP_SERVER, dirname(__FILE__) . '/' . 'good.pem'),
+            sprintf("stunnel3 -d %s -r %s -p %s -P '' -f", SELF_SIGNED_STUNNEL_SERVER, PHP_SERVER, dirname(__FILE__) . '/' . 'self.pem'),
+            sprintf("stunnel3 -d %s -r %s -p %s -P '' -f", BAD_HOSTNAME_STUNNEL_SERVER, PHP_SERVER, dirname(__FILE__) . '/' . 'badhost.pem'),
         ];
 
         $pids = [];
@@ -64,8 +67,8 @@ class SSLTest extends \PHPUnit\Framework\TestCase
     */
     protected static function getPeerFailedVerificationErrorCode()
     {
-        $curl_version = curl_version()["version"];
-        if (version_compare($curl_version, "7.62.0", "lt")) {
+        $curl_version = curl_version()['version'];
+        if (version_compare($curl_version, '7.62.0', 'lt')) {
             return self::CURLE_PEER_FAILED_VERIFICATION_OLD;
         }
 
@@ -75,12 +78,12 @@ class SSLTest extends \PHPUnit\Framework\TestCase
     public function pingSSLServer($requester, $host, $certificate)
     {
         $duo = new \DuoAPI\Auth(
-            "IKEYIKEYIKEYIKEYIKEY",
-            "SKEYSKEYSKEYSKEYSKEYSKEYSKEYSKEYSKEYSKEY",
+            'IKEYIKEYIKEYIKEYIKEY',
+            'SKEYSKEYSKEYSKEYSKEYSKEYSKEYSKEYSKEYSKEY',
             $host,
             $requester
         );
-        $duo->setRequesterOption("ca", $certificate);
+        $duo->setRequesterOption('ca', $certificate);
         $result = $duo->ping();
 
         return $result;
@@ -105,7 +108,7 @@ class SSLTest extends \PHPUnit\Framework\TestCase
             $this->good_chain
         );
 
-        $this->assertTrue($result["success"]);
+        $this->assertTrue($result['success']);
     }
 
     public function testCorrectlySignedCertificateFile()
@@ -122,7 +125,7 @@ class SSLTest extends \PHPUnit\Framework\TestCase
          * SSL *connection* is made, there's not a fully implemented API
          * waiting for us on the other side of the connection.
          */
-        $this->assertEquals(404, $result["http_status_code"]);
+        $this->assertEquals(404, $result['http_status_code']);
     }
 
     /*
@@ -145,10 +148,10 @@ class SSLTest extends \PHPUnit\Framework\TestCase
             $this->bad_chain
         );
 
-        $this->assertFalse($result["success"]);
-        $this->assertEquals($result["response"]["stat"], "FAIL");
+        $this->assertFalse($result['success']);
+        $this->assertEquals($result['response']['stat'], 'FAIL');
         $this->assertEquals(
-            $result["response"]["code"],
+            $result['response']['code'],
             self::CURLE_PEER_FAILED_VERIFICATION
         );
     }
@@ -162,11 +165,11 @@ class SSLTest extends \PHPUnit\Framework\TestCase
             $this->bad_chain
         );
 
-        $this->assertFalse($result["success"]);
-        $this->assertEquals($result["response"]["stat"], "FAIL");
+        $this->assertFalse($result['success']);
+        $this->assertEquals($result['response']['stat'], 'FAIL');
         $this->assertStringContainsStringIgnoringCase(
-            "failed to open stream: operation failed",
-            $result["response"]["message"]
+            'failed to open stream: operation failed',
+            $result['response']['message']
         );
     }
 
@@ -187,10 +190,10 @@ class SSLTest extends \PHPUnit\Framework\TestCase
             $this->good_chain
         );
 
-        $this->assertFalse($result["success"]);
-        $this->assertEquals($result["response"]["stat"], "FAIL");
+        $this->assertFalse($result['success']);
+        $this->assertEquals($result['response']['stat'], 'FAIL');
         $this->assertEquals(
-            $result["response"]["code"],
+            $result['response']['code'],
             self::CURLE_PEER_FAILED_VERIFICATION
         );
     }
@@ -204,11 +207,11 @@ class SSLTest extends \PHPUnit\Framework\TestCase
             $this->good_chain
         );
 
-        $this->assertFalse($result["success"]);
-        $this->assertEquals($result["response"]["stat"], "FAIL");
+        $this->assertFalse($result['success']);
+        $this->assertEquals($result['response']['stat'], 'FAIL');
         $this->assertStringContainsStringIgnoringCase(
-            "failed to open stream: operation failed",
-            $result["response"]["message"]
+            'failed to open stream: operation failed',
+            $result['response']['message']
         );
     }
 
@@ -230,10 +233,10 @@ class SSLTest extends \PHPUnit\Framework\TestCase
             $this->good_chain
         );
 
-        $this->assertFalse($result["success"]);
-        $this->assertEquals($result["response"]["stat"], "FAIL");
+        $this->assertFalse($result['success']);
+        $this->assertEquals($result['response']['stat'], 'FAIL');
         $this->assertEquals(
-            $result["response"]["code"],
+            $result['response']['code'],
             self::getPeerFailedVerificationErrorCode()
         );
     }
@@ -247,11 +250,11 @@ class SSLTest extends \PHPUnit\Framework\TestCase
             $this->good_chain
         );
 
-        $this->assertFalse($result["success"]);
-        $this->assertEquals($result["response"]["stat"], "FAIL");
+        $this->assertFalse($result['success']);
+        $this->assertEquals($result['response']['stat'], 'FAIL');
         $this->assertStringContainsStringIgnoringCase(
-            "failed to open stream: operation failed",
-            $result["response"]["message"]
+            'failed to open stream: operation failed',
+            $result['response']['message']
         );
     }
 }

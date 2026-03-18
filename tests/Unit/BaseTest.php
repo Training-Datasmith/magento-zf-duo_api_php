@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Unit;
 
 abstract class BaseTest extends \PHPUnit\Framework\TestCase
@@ -7,7 +10,7 @@ abstract class BaseTest extends \PHPUnit\Framework\TestCase
     public $random_numbers;
     public $mock_sleep_svc;
 
-    public function setUp() : void
+    public function setUp(): void
     {
         $this->mocked_curl_requester = $this->getMockBuilder('\DuoAPI\CurlRequester')
                                             ->setMethods(['execute', 'options'])
@@ -42,12 +45,12 @@ abstract class BaseTest extends \PHPUnit\Framework\TestCase
             }
         }
 
-        $class = new \ReflectionClass(sprintf("\\DuoAPI\\%s", $client));
+        $class = new \ReflectionClass(sprintf('\\DuoAPI\\%s', $client));
         $client = $class->newInstanceArgs([
-            "IKEYIKEYIKEYIKEYIKEY",
-            "SKEYSKEYSKEYSKEYSKEYSKEYSKEYSKEYSKEYSKEY",
-            "api-duo.example.com",
-            $this->mocked_curl_requester
+            'IKEYIKEYIKEYIKEYIKEY',
+            'SKEYSKEYSKEYSKEYSKEYSKEYSKEYSKEYSKEYSKEY',
+            'api-duo.example.com',
+            $this->mocked_curl_requester,
         ]);
 
         $this->mock_sleep_svc = new MockSleepService();
@@ -63,14 +66,14 @@ abstract class BaseTest extends \PHPUnit\Framework\TestCase
     protected static function getUnsuccessfulResponse()
     {
         $unsuccessful_preauth_response = [
-            "response" => json_encode([
-                "stat" => "FAIL",
-                "code" => 40002,
-                "message" => "Invalid request parameters",
-                "message_detail" => "username"
+            'response' => json_encode([
+                'stat' => 'FAIL',
+                'code' => 40002,
+                'message' => 'Invalid request parameters',
+                'message_detail' => 'username',
             ]),
-            "success" => true,
-            "http_status_code" => 400,
+            'success' => true,
+            'http_status_code' => 400,
         ];
 
         return $unsuccessful_preauth_response;

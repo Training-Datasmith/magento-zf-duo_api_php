@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace DuoAPI;
 
 class FileRequester implements Requester
@@ -8,31 +11,31 @@ class FileRequester implements Requester
     public function __construct()
     {
         $this->http_options = [
-            "http" => [
+            'http' => [
                 /*
                  * We'll handle HTTP errors on our own
                  */
-                "ignore_errors" => true,
+                'ignore_errors' => true,
             ],
-            "ssl" => [
+            'ssl' => [
                 /*
                  * Disallow self-signed certificates
                  */
-                "allow_self_signed" => false,
+                'allow_self_signed' => false,
                 /*
                  * Enforce CN verification
                  */
-                "verify_peer" => true,
+                'verify_peer' => true,
                 /*
                  * Avoid compression (CRIME attack)
                  */
-                "disable_compression" => true,
+                'disable_compression' => true,
                 /*
                  * Require good ciphers. View the list with:
                  *
                  *     openssl ciphers -v 'HIGH:!SSLv2:!SSLv3'
                  */
-                "ciphers" => "HIGH:!SSLv2:!SSLv3",
+                'ciphers' => 'HIGH:!SSLv2:!SSLv3',
             ],
         ];
     }
@@ -63,19 +66,19 @@ class FileRequester implements Requester
     {
         assert(is_array($options));
 
-        if (isset($options["user_agent"])) {
-            $this->http_options["http"]["user_agent"] = $options["user_agent"];
+        if (isset($options['user_agent'])) {
+            $this->http_options['http']['user_agent'] = $options['user_agent'];
         }
-        if (isset($options["timeout"])) {
-            $this->http_options["http"]["timeout"] = $options["timeout"];
+        if (isset($options['timeout'])) {
+            $this->http_options['http']['timeout'] = $options['timeout'];
         }
-        if (isset($options["proxy_url"])) {
-            $uri  = $options["proxy_url"];
-            $uri .= (isset($options["proxy_port"]) ? ":" . $options["proxy_port"] : "");
-            $this->http_options["http"]["proxy"] = $uri;
+        if (isset($options['proxy_url'])) {
+            $uri  = $options['proxy_url'];
+            $uri .= (isset($options['proxy_port']) ? ':' . $options['proxy_port'] : '');
+            $this->http_options['http']['proxy'] = $uri;
         }
-        if (isset($options["ca"])) {
-            $this->http_options["ssl"]["cafile"] = $options["ca"];
+        if (isset($options['ca'])) {
+            $this->http_options['ssl']['cafile'] = $options['ca'];
         }
     }
 
@@ -86,12 +89,12 @@ class FileRequester implements Requester
         assert(is_array($headers));
         assert(is_string($body) || is_null($body));
 
-        $headers = array_map(fn($key, int $value) => sprintf("%s: %s", $key, $value), array_keys($headers), array_values($headers));
+        $headers = array_map(fn ($key, int $value) => sprintf('%s: %s', $key, $value), array_keys($headers), array_values($headers));
 
         $this->http_options['http']['method'] = $method;
         $this->http_options['http']['header'] = $headers;
 
-        if ($method === "POST") {
+        if ($method === 'POST') {
             $this->http_options['http']['content'] = $body;
         }
 
@@ -103,8 +106,8 @@ class FileRequester implements Requester
         $success = true;
         if ($result === false) {
             $error = error_get_last();
-            $errno = $error["type"];
-            $message = $error["message"];
+            $errno = $error['type'];
+            $message = $error['message'];
 
             /**
              * We could simply leave the result as FALSE and return that, but
@@ -131,9 +134,9 @@ class FileRequester implements Requester
         }
 
         return [
-            "response" => $result,
-            "success" => $success,
-            "http_status_code" => $http_status_code
+            'response' => $result,
+            'success' => $success,
+            'http_status_code' => $http_status_code,
         ];
     }
 }

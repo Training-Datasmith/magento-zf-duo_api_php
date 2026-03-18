@@ -1,12 +1,15 @@
 <?php
+
+declare(strict_types=1);
+
 namespace DuoAPI;
 
-define('DEFAULT_CA_CERTS', __DIR__."/ca_certs.pem");
+define('DEFAULT_CA_CERTS', __DIR__.'/ca_certs.pem');
 
 class CurlRequester implements Requester
 {
     public $ch;
-    
+
     public function __construct()
     {
         $this->ch = curl_init();
@@ -22,14 +25,14 @@ class CurlRequester implements Requester
          * argument.
          */
         $possible_options = [
-            CURLOPT_TIMEOUT => "timeout",
-            CURLOPT_CAINFO => "ca",
-            CURLOPT_USERAGENT => "user_agent",
-            CURLOPT_PROXY => "proxy_url",
-            CURLOPT_PROXYPORT => "proxy_port",
+            CURLOPT_TIMEOUT => 'timeout',
+            CURLOPT_CAINFO => 'ca',
+            CURLOPT_USERAGENT => 'user_agent',
+            CURLOPT_PROXY => 'proxy_url',
+            CURLOPT_PROXYPORT => 'proxy_port',
         ];
 
-        $curl_options = array_filter($possible_options, fn(string $option) => array_key_exists($option, $options));
+        $curl_options = array_filter($possible_options, fn (string $option) => array_key_exists($option, $options));
 
         foreach ($curl_options as $key => $value) {
             $curl_options[$key] = $options[$value];
@@ -39,7 +42,7 @@ class CurlRequester implements Requester
             $curl_options[CURLOPT_CAINFO] = DEFAULT_CA_CERTS;
         };
 
-        if ($curl_options[CURLOPT_CAINFO] == "IGNORE") {
+        if ($curl_options[CURLOPT_CAINFO] == 'IGNORE') {
             unset($curl_options[CURLOPT_CAINFO]);
         };
 
@@ -59,16 +62,16 @@ class CurlRequester implements Requester
         assert(is_array($headers));
         assert(is_string($body) || is_null($body));
 
-        $headers = array_map(fn($key, int $value) => sprintf("%s: %s", $key, $value), array_keys($headers), array_values($headers));
+        $headers = array_map(fn ($key, int $value) => sprintf('%s: %s', $key, $value), array_keys($headers), array_values($headers));
 
         curl_setopt($this->ch, CURLOPT_URL, $url);
         curl_setopt($this->ch, CURLOPT_HTTPHEADER, $headers);
 
-        if ($method === "POST") {
+        if ($method === 'POST') {
             curl_setopt($this->ch, CURLOPT_POST, true);
             curl_setopt($this->ch, CURLOPT_POSTFIELDS, $body);
             curl_setopt($this->ch, CURLOPT_CUSTOMREQUEST, null);
-        } elseif ($method === "GET") {
+        } elseif ($method === 'GET') {
             curl_setopt($this->ch, CURLOPT_HTTPGET, true);
             curl_setopt($this->ch, CURLOPT_CUSTOMREQUEST, null);
         } else {
@@ -107,9 +110,9 @@ class CurlRequester implements Requester
         }
 
         return [
-            "response" => $result,
-            "success" => $success,
-            "http_status_code" => $http_status_code
+            'response' => $result,
+            'success' => $success,
+            'http_status_code' => $http_status_code,
         ];
     }
 }

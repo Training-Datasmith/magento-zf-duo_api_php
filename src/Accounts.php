@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace DuoAPI;
 
 /*
@@ -7,11 +10,10 @@ namespace DuoAPI;
 
 class Accounts extends Client
 {
-
     public function list_accounts()
     {
-        $method = "POST";
-        $endpoint = "/accounts/v1/account/list";
+        $method = 'POST';
+        $endpoint = '/accounts/v1/account/list';
         $params = [];
 
         return self::jsonApiCall($method, $endpoint, $params);
@@ -21,10 +23,10 @@ class Accounts extends Client
     {
         assert(is_string($name));
 
-        $method = "POST";
-        $endpoint = "/accounts/v1/account/create";
+        $method = 'POST';
+        $endpoint = '/accounts/v1/account/create';
         $params = [
-            "name" => $name,
+            'name' => $name,
         ];
 
         return self::jsonApiCall($method, $endpoint, $params);
@@ -34,10 +36,10 @@ class Accounts extends Client
     {
         assert(is_string($account_id));
 
-        $method = "POST";
-        $endpoint = "/accounts/v1/account/delete";
+        $method = 'POST';
+        $endpoint = '/accounts/v1/account/delete';
         $params = [
-            "account_id" => $account_id,
+            'account_id' => $account_id,
         ];
 
         return self::jsonApiCall($method, $endpoint, $params);

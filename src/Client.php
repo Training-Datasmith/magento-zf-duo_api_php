@@ -1,19 +1,21 @@
 <?php
+
+declare(strict_types=1);
+
 namespace DuoAPI;
 
 use DateTime;
 
-const VERSION = "1.2.0-dev";
+const VERSION = '1.2.0-dev';
 const INITIAL_BACKOFF_SECONDS = 1;
 const MAX_BACKOFF_SECONDS = 32;
 const BACKOFF_FACTOR = 2;
 const RATE_LIMIT_HTTP_CODE = 429;
 
-
 class Client
 {
-    const DEFAULT_PAGING_LIMIT = '100';
-    
+    public const DEFAULT_PAGING_LIMIT = '100';
+
     public $ikey;
     public $skey;
     public $host;
@@ -47,7 +49,7 @@ class Client
 
         if ($requester !== null) {
             $this->requester = $requester;
-        } elseif (in_array("curl", get_loaded_extensions(), true)) {
+        } elseif (in_array('curl', get_loaded_extensions(), true)) {
             $this->requester = new CurlRequester();
         } else {
             $this->requester = new FileRequester();
@@ -57,7 +59,7 @@ class Client
 
         // Default requester options
         $this->options = [
-            "timeout" => 10,
+            'timeout' => 10,
         ];
 
         $this->sleep_service = new USleepService();
@@ -89,12 +91,12 @@ class Client
         assert(is_string($now));
 
         $canon = self::canonicalize($method, $host, $path, $params, $now, $body, $additional_headers);
-        
+
         $signature = self::sign($canon, $skey);
-        $auth = sprintf("%s:%s", $ikey, $signature);
+        $auth = sprintf('%s:%s', $ikey, $signature);
         $b64auth = base64_encode($auth);
 
-        return sprintf("Basic %s", $b64auth);
+        return sprintf('Basic %s', $b64auth);
     }
 
     private function sign($msg, string $key): string
@@ -105,7 +107,7 @@ class Client
         $msg = mb_convert_encoding($msg ?? '', 'UTF-8', 'ISO-8859-1');
         $key = mb_convert_encoding($key ?? '', 'UTF-8', 'ISO-8859-1');
 
-        return hash_hmac("sha512", $msg, $key);
+        return hash_hmac('sha512', $msg, $key);
     }
 
     private function canonicalize(string $method, string $host, string $path, array $params, string $now, $body = null, $additional_headers = []): string
@@ -119,7 +121,7 @@ class Client
         assert(is_array($additional_headers));
 
         $args = self::urlEncodeParameters($params);
-        
+
         $canon = [
             $now,
             strtoupper($method),
@@ -136,7 +138,7 @@ class Client
     private function canonXDuoHeaders(array $additional_headers = []): string
     {
         assert(is_array($additional_headers));
-        
+
         $lowered_headers = array_change_key_case($additional_headers, CASE_LOWER);
         ksort($lowered_headers);
 
@@ -158,13 +160,13 @@ class Client
         if ($value === null) {
             throw new \InvalidArgumentException("Not allowed 'null' as a header name or value");
         }
-        if (str_contains($name,"\x00")) {
+        if (str_contains($name, "\x00")) {
             throw new \InvalidArgumentException("Not allowed 'Null' character in header name");
         }
-        if (str_contains($value,"\x00")) {
+        if (str_contains($value, "\x00")) {
             throw new \InvalidArgumentException("Not allowed 'Null' character in header value");
         }
-        if (!str_starts_with(strtolower($name),"x-duo-")) {
+        if (!str_starts_with(strtolower($name), 'x-duo-')) {
             throw new \InvalidArgumentException("Additional headers must start with 'X-Duo-'");
         }
         if (in_array(strtolower($name), $addedHeaders, true)) {
@@ -177,8 +179,8 @@ class Client
         assert(is_array($params));
 
         ksort($params);
-        $args = array_map(fn($key, int $value) => sprintf("%s=%s", rawurlencode($key), rawurlencode($value)), array_keys($params), array_values($params));
-        return implode("&", $args);
+        $args = array_map(fn ($key, int $value) => sprintf('%s=%s', rawurlencode($key), rawurlencode($value)), array_keys($params), array_values($params));
+        return implode('&', $args);
     }
 
     private function makeRequest(string $method, string $uri, string|bool $body, array $headers)
@@ -188,14 +190,14 @@ class Client
         assert(is_string($body) || is_null($body));
         assert(is_array($headers));
 
-        $url = "https://" . $this->host . $uri;
+        $url = 'https://' . $this->host . $uri;
 
         $this->requester->options($this->options);
 
         $backoff_seconds = INITIAL_BACKOFF_SECONDS;
         while (true) {
             $result = $this->requester->execute($url, $method, $headers, $body);
-            if ($result["http_status_code"] != RATE_LIMIT_HTTP_CODE || $backoff_seconds > MAX_BACKOFF_SECONDS) {
+            if ($result['http_status_code'] != RATE_LIMIT_HTTP_CODE || $backoff_seconds > MAX_BACKOFF_SECONDS) {
                 return $result;
             }
 
@@ -213,20 +215,20 @@ class Client
 
         $now = date(DateTime::RFC2822);
         $headers = [];
-        if (in_array($method, ["POST", "PUT", "PATCH"], true)) {
+        if (in_array($method, ['POST', 'PUT', 'PATCH'], true)) {
             ksort($params);
-            $body = empty($params) ? "{}" : json_encode($params);
+            $body = empty($params) ? '{}' : json_encode($params);
             $params = [];
-            $headers["Content-Type"] = "application/json";
+            $headers['Content-Type'] = 'application/json';
             $uri = $path;
         } else {
-            $body = "";
-            $uri = $path . (!empty($params) ? "?" . self::urlEncodeParameters($params) : "");
+            $body = '';
+            $uri = $path . (!empty($params) ? '?' . self::urlEncodeParameters($params) : '');
         }
 
-        $headers["Date"] = $now;
-        $headers["User-Agent"] = "duo_api_php/" . VERSION;
-        $headers["Authorization"] = self::signParameters(
+        $headers['Date'] = $now;
+        $headers['User-Agent'] = 'duo_api_php/' . VERSION;
+        $headers['Authorization'] = self::signParameters(
             $method,
             $this->host,
             $path,
@@ -248,7 +250,7 @@ class Client
         assert(is_array($params));
 
         $result = self::apiCall($method, $path, $params);
-        $result["response"] = json_decode($result["response"], true);
+        $result['response'] = json_decode($result['response'], true);
         return $result;
     }
 
@@ -260,29 +262,29 @@ class Client
 
         $offset = 0;
 
-        if (!isset($params["limit"])) {
-            $params["limit"] = self::DEFAULT_PAGING_LIMIT;
+        if (!isset($params['limit'])) {
+            $params['limit'] = self::DEFAULT_PAGING_LIMIT;
         }
 
         $result = [];
         while ($offset !== false) {
-            $params["offset"] = strval($offset);
+            $params['offset'] = strval($offset);
             $paged_result = self::jsonApiCall($method, $path, $params);
 
             /*
              * If we receive any sort of error during paging calls we're going
              * to bail. This is so we don't return partial results.
              */
-            $network_error = !isset($paged_result["success"]) || $paged_result["success"] !== true;
-            $api_error = !isset($paged_result["response"]["stat"]) || $paged_result["response"]["stat"] !== "OK";
+            $network_error = !isset($paged_result['success']) || $paged_result['success'] !== true;
+            $api_error = !isset($paged_result['response']['stat']) || $paged_result['response']['stat'] !== 'OK';
             if ($network_error || $api_error) {
                 return $paged_result;
             }
 
-            $offset = $paged_result["response"]["metadata"]["next_offset"] ?? false;
+            $offset = $paged_result['response']['metadata']['next_offset'] ?? false;
 
-            if (isset($paged_result["response"]["metadata"])) {
-                unset($paged_result["response"]["metadata"]);
+            if (isset($paged_result['response']['metadata'])) {
+                unset($paged_result['response']['metadata']);
             }
 
             /*
@@ -294,9 +296,9 @@ class Client
             if (empty($result)) {
                 $result = $paged_result;
             } else {
-                $result["response"]["response"] = array_merge(
-                    $result["response"]["response"],
-                    $paged_result["response"]["response"]
+                $result['response']['response'] = array_merge(
+                    $result['response']['response'],
+                    $paged_result['response']['response']
                 );
             }
         }
