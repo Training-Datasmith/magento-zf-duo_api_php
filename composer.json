@@ -12,7 +12,7 @@
     },
     "autoload": {
         "psr-4": {
-            "DuoAPI\\": "src/"
+            "Duo_API\\": "src/"
         }
     },
     "autoload-dev": {
