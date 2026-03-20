@@ -1,10 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Duo_Api;
 
-namespace DuoAPI;
-
-class USleepService implements SleepService
+class U_Sleep_Service implements Sleep_Service
 {
     public function sleep($seconds): void
     {

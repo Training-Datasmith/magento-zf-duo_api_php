@@ -1,8 +1,7 @@
 <?php
 
-declare(strict_types=1);
-
-namespace DuoAPI;
+declare (strict_types=1);
+namespace Duo_Api;
 
 interface Requester
 {
